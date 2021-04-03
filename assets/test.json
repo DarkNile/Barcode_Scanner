@@ -1,0 +1,26 @@
+{
+    "itemCode": "22222222",
+    "itemName": "Pen",
+    "property": [
+        {
+            "uomCode": "EA",
+            "baseQuantity": 1.0,
+            "price": 100.0
+        },
+        {
+            "uomCode": "Dozen",
+            "baseQuantity": 12.0,
+            "price": 1200.0
+        },
+        {
+            "uomCode": "Tone",
+            "baseQuantity": 24.0,
+            "price": 2400.0
+        },
+        {
+            "uomCode": "Blue",
+            "baseQuantity": 50.0,
+            "price": 5000.0
+        }
+    ]
+}
