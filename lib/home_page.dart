@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_barcode_scanner/flutter_barcode_scanner.dart';
 import 'dart:async' show Future;
-import 'package:flutter/services.dart' show rootBundle;
 import 'dart:convert';
+import 'package:http/http.dart' as http;
 
 class Home extends StatefulWidget {
   @override
@@ -14,12 +14,19 @@ class _HomeState extends State<Home> {
 
   String _scanBarcode = '';
   int counter = 10;
-  Map<String, dynamic> data;
+  var jsonResponse;
 
-  Future<String> loadJsonData() async {
-    var jsonText = await rootBundle.loadString('assets/test.json');
-    setState(() => data = json.decode(jsonText));
-    return 'success';
+  //TODO Change URL Here...
+  var url = 'https://jsonplaceholder.typicode.com/todos';
+
+  Future getWebService() async {
+    var response = await http.get(url);
+    if (response.statusCode == 200) {
+      jsonResponse = jsonDecode(response.body);
+      print('Response: $jsonResponse');
+    } else {
+      print('Request failed with status: ${response.statusCode}.');
+    }
   }
 
   scanBarcodeNormal() async {
@@ -43,8 +50,8 @@ class _HomeState extends State<Home> {
   @override
   void initState() {
     super.initState();
+    getWebService();
     scanBarcodeNormal();
-    loadJsonData();
   }
 
   @override
@@ -57,28 +64,20 @@ class _HomeState extends State<Home> {
           children: [
             Image.asset('assets/logo.jpg'),
             Text('Barcode Result: $_scanBarcode'),
-            GridView.builder(
-              shrinkWrap: true,
-              gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: 2,
-              ),
-              itemCount: data == null ? 0 : data.length + 1,
-              itemBuilder: (context, index){
-                var code = data['property'][index]['uomCode'];
-                var base = data['property'][index]['baseQuantity'].toString();
-                var price = data['property'][index]['price'].toString();
-                return Card(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                    children: [
-                      Text(code),
-                      Text(base),
-                      Text(price)
-                    ],
-                  ),
-                );
+            FutureBuilder(
+              future: getWebService(),
+              builder: (context, snapshot){
+                print('snapshot');
+                print(snapshot);
+                if(snapshot.hasError)
+                  return Text('Error: ${snapshot.error}');
+                else if (snapshot.data == ConnectionState.waiting){
+                  return CircularProgressIndicator();
+                }
+                else
+                  return Text(jsonResponse[0].toString());
               },
-            )
+            ),
           ],
         ),
       ),
