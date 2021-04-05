@@ -14,7 +14,7 @@ class _HomeState extends State<Home> {
 
   String _scanBarcode = '';
   int counter = 10;
-  var jsonResponse;
+  List jsonResponse = [];
 
   //TODO Change URL Here...
   var url = 'https://jsonplaceholder.typicode.com/todos';
@@ -50,35 +50,69 @@ class _HomeState extends State<Home> {
   @override
   void initState() {
     super.initState();
-    getWebService();
     scanBarcodeNormal();
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
-            Image.asset('assets/logo.jpg'),
-            Text('Barcode Result: $_scanBarcode'),
-            FutureBuilder(
-              future: getWebService(),
-              builder: (context, snapshot){
-                print('snapshot');
-                print(snapshot);
-                if(snapshot.hasError)
-                  return Text('Error: ${snapshot.error}');
-                else if (snapshot.data == ConnectionState.waiting){
-                  return CircularProgressIndicator();
-                }
-                else
-                  return Text(jsonResponse[0].toString());
-              },
-            ),
-          ],
+      body: SafeArea(
+        child: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              Container(
+                  margin: EdgeInsets.only(left: 25),
+                  alignment: Alignment.centerLeft,
+                  child: Image.asset('assets/logo.jpg', width: 75, height: 75)
+              ),
+              Container(
+                  margin: EdgeInsets.only(left: 25),
+                  height: 40,
+                  alignment: Alignment.centerLeft,
+                  child: Text('Barcode Result: $_scanBarcode', style: TextStyle(
+                    fontWeight: FontWeight.bold, fontSize: 14
+                  ))
+              ),
+              FutureBuilder(
+                future: getWebService(),
+                builder: (context, snapshot){
+                  if(snapshot.hasError)
+                    return Text('Error: ${snapshot.error}');
+                  else if (snapshot.data == ConnectionState.waiting)
+                    return CircularProgressIndicator();
+                  else {
+                    return GridView.builder(
+                      shrinkWrap: true,
+                      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                        crossAxisCount: 2,
+                      ),
+                      // itemCount: jsonResponse.length,
+                      itemCount: jsonResponse.isNotEmpty? 6 : 0,
+                      itemBuilder: (context, index) {
+                        //ToDO Change Params Here..
+                        var code = jsonResponse[index]['id'].toString();
+                        var base = jsonResponse[index]['title'].toString();
+                        var price = jsonResponse[index]['completed'].toString();
+                        return Card(
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                            children: [
+                              Text('$code'),
+                              //ToDO Remove maxLines: 1
+                              Text('$base', maxLines: 1),
+                              Text('$price')
+                            ],
+                          ),
+                        );
+                      },
+                    );
+                  }
+                },
+              ),
+            ],
+          ),
         ),
       ),
     );
